@@ -7,47 +7,7 @@ const imageLoader = ({ src, width, quality }) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${src}.png`;
 };
 
-export default function Test({ pokemon }) {
-  //need to replace this with string of numbers of pokemon
-  const sprintNames = [ "1", "2", "3"];
-  //need string of names of pokemon
-
-  let count = Object.keys(pokemon["results"]).length;
-  const allPokemon = pokemon["results"];
-  let pokemonNames = new Array();
-  let pokemonNamesFinal = new Array();
-
-  //makes array of names
-  for(let i=0; i<count; i++){
-    let name = (pokemon["results"][i]["name"]);
-
-    pokemonNames[i] = name;
-  }
-
-  pokemonNames.sort();
-  let beginning = 0;
-//   let beginningChar = pokemonNames[0].at(0);
-  let beginningChar = '';
-
-  let namesNumber = 0;
-
-  //get one name per letter and put in new array
-  for(let j=0; j<count; j++){
-
-    let currChar = pokemonNames[j].at(0);
-
-    if(currChar != beginningChar){
-        let gap = j - beginning;
-        // let randomNum = (Math.random() * gap ) + beginning; 
-        pokemonNamesFinal[namesNumber] = pokemonNames[j]; 
-
-
-        beginningChar = currChar;
-        beginning = j;
-        namesNumber++;
-    }
-    
-  }
+export default function Test({ pokemonList, indexList }) {
 
   
   return (
@@ -61,26 +21,22 @@ export default function Test({ pokemon }) {
 
       <div className="nameList">
         <ul>
-        {sprintNames.map((name) => (
+        {pokemonList.map((name, index) => (
             <p key={name}>
               <Image
               loader={imageLoader} 
-              src={name}
+              src={indexList[index]}
 
-              width={75}
-              height ={75}
+              width={50}
+              height ={50}
               
               //TODO alt name should be pokemon name
               alt ={name} />
               {name}</p>
               ))}
-          
+
           </ul>
-          <ul>
-          {pokemonNamesFinal.map( (value) => (
-            <p key ={value}>{value}</p>
-          ))}
-          </ul>
+
       </div>
       </div>
     // </Layout>
@@ -98,11 +54,73 @@ export async function getStaticProps() {
     });
     const pokemon = await res.json();
    
+    let count = Object.keys(pokemon["results"]).length;
+    const allPokemon = pokemon["results"];
+    let pokemonNames = new Array();
+    let pokemonList = new Array();
+    let randomNums = new Array();
+    let indexList = new Array();
+    let urlList = new Array();
+
+    //makes array of names
+    for(let i=0; i<count; i++){
+      let name = (pokemon["results"][i]["name"]);
+  
+      pokemonNames[i] = name;
+    }
+  
+    pokemonNames.sort();
+    for(let j=0; j<26; j++){
+        randomNums[j] = (Math.random()); 
+
+    }
+    let beginning = 0;
+    let beginningChar = pokemonNames[0].at(0);
+  
+      let namesNumber = 0;
+      let nameIndex = new Array();
+  
+      for(let j=0; j<count; j++){
+    
+        let currChar = pokemonNames[j].at(0);
+    
+        if(currChar != beginningChar){
+  
+            let randomNum = (randomNums[namesNumber] * (j-beginning)) + beginning; 
+            nameIndex[namesNumber] = Math.floor(randomNum).toString();
+  
+            pokemonList[namesNumber] = pokemonNames[nameIndex[namesNumber]]; 
+
+            beginningChar = currChar;
+            beginning = j;
+            namesNumber++;
+        }
+  
+        //for final letter
+        if(j == count - 1){
+          let randomNum = (randomNums[namesNumber] * (j-beginning)) + beginning;
+          nameIndex[namesNumber] = Math.floor(randomNum).toString();
+          pokemonList[namesNumber] = pokemonNames[nameIndex[namesNumber]];
+        }
+        
+      }
+
+      //make list of url numbers
+      for(let i = 0; i<26; i++){
+        let index = pokemon["results"].findIndex(poke=> poke.name==pokemonList[i]);
+        urlList[i] = pokemon["results"][index]["url"];
+        let url = urlList[i].toString();
+        url = url.replace("https://pokeapi.co/api/v2/pokemon/", "");
+        url = url.replace("/", "");
+        indexList[i] = url;
+      }
+  
     // By returning { props: { pokemon } }, the component
     // will receive `pokemon` as a prop at build time
     return {
       props: {
-        pokemon,
+        pokemonList,
+        indexList
       },
     };
   }
